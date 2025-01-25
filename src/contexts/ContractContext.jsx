@@ -1,77 +1,67 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { ethers } from "ethers";
+import React, { createContext, useContext, useState } from "react";
+import Web3 from "web3";
 import { useWallet } from "./WalletContext";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../utils/contractHelpers";
 
-const ContractContext = createContext();
-
-const MANTLE_TOKEN_ABI = CONTRACT_ABI;
-
-const MANTLE_TOKEN_ADDRESS = CONTRACT_ADDRESS;
+export const ContractContext = createContext();
 
 export const ContractProvider = ({ children }) => {
-  const { signer, account } = useWallet();
-  const [mantleContract, setMantleContract] = useState(null);
-  const [balance, setBalance] = useState("0");
+  const { web3, account } = useWallet();
+  const [contractError, setContractError] = useState(null);
 
-  useEffect(() => {
-    if (signer && MANTLE_TOKEN_ADDRESS) {
-      const contract = new ethers.Contract(
-        MANTLE_TOKEN_ADDRESS,
-        MANTLE_TOKEN_ABI,
-        signer
-      );
-      setMantleContract(contract);
-    }
-  }, [signer]);
-
-  useEffect(() => {
-    const updateBalance = async () => {
-      if (mantleContract && account) {
-        try {
-          const balance = await mantleContract.balanceOf(account);
-          setBalance(ethers.utils.formatEther(balance));
-        } catch (error) {
-          console.error("Error fetching balance:", error);
-        }
-      }
-    };
-
-    updateBalance();
-    // Set up event listener for transfers
-    if (mantleContract) {
-      mantleContract.on("Transfer", (from, to, value) => {
-        if (to.toLowerCase() === account?.toLowerCase()) {
-          updateBalance();
-        }
-      });
-    }
-
-    return () => {
-      if (mantleContract) {
-        mantleContract.removeAllListeners("Transfer");
-      }
-    };
-  }, [mantleContract, account]);
+  const getContract = () => {
+    if (!web3) throw new Error("Web3 not initialized");
+    return new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+  };
 
   const claimReward = async () => {
-    if (!mantleContract || !account)
-      throw new Error("Contract or account not initialized");
-
     try {
-      const tx = await mantleContract.distributeReward(account);
-      await tx.wait();
-      return tx.hash;
+      if (!account) throw new Error("No wallet connected");
+
+      const contract = getContract();
+
+      // New implementation with amountInEther as 1
+      const txHash = await contract.methods.distributeReward(account, 1).send({
+        from: account,
+        gas: 300000, // Adjust gas limit as needed
+      });
+
+      return txHash.transactionHash;
     } catch (error) {
+      setContractError(error.message);
+      console.error("Error claiming reward:", error);
+      throw error;
+    }
+  };
+
+  const getContractBalance = async () => {
+    try {
+      const contract = getContract();
+      return await contract.methods.getContractBalance().call();
+    } catch (error) {
+      setContractError(error.message);
+      console.error("Error getting contract balance:", error);
       throw error;
     }
   };
 
   return (
-    <ContractContext.Provider value={{ mantleContract, balance, claimReward }}>
+    <ContractContext.Provider
+      value={{
+        claimReward,
+        getContractBalance,
+        contractError,
+      }}
+    >
       {children}
     </ContractContext.Provider>
   );
 };
 
-export const useContract = () => useContext(ContractContext);
+export const useContract = () => {
+  const context = useContext(ContractContext);
+  if (!context) {
+    throw new Error("useContract must be used within a ContractProvider");
+  }
+  return context;
+};

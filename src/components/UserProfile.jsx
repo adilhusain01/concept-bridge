@@ -21,6 +21,7 @@ const UserProfile = () => {
     currentStreak: 0,
     isLoading: false,
   });
+  const [claimError, setClaimError] = useState(null);
 
   const { claimReward } = useContract();
 
@@ -106,6 +107,7 @@ const UserProfile = () => {
   }, [account, isRegistered]);
 
   const handleClaimReward = async () => {
+    setClaimError(null);
     setStreakStatus((prev) => ({ ...prev, isLoading: true }));
     try {
       // Call smart contract to distribute reward
@@ -132,6 +134,7 @@ const UserProfile = () => {
       }));
     } catch (error) {
       console.error("Error claiming reward:", error);
+      setClaimError(error.message || "Failed to claim reward");
     } finally {
       setStreakStatus((prev) => ({ ...prev, isLoading: false }));
     }
@@ -345,6 +348,9 @@ const UserProfile = () => {
                         ).toLocaleDateString()}`
                       : " - Complete 5 days of activity to earn MNT tokens!"}
                   </p>
+                  {claimError && (
+                    <p className="text-sm text-red-500 mt-2">{claimError}</p>
+                  )}
                 </div>
                 <Button
                   onClick={handleClaimReward}
