@@ -346,7 +346,7 @@ const UserProfile = () => {
                       ? ` - Next reward available on ${new Date(
                           streakStatus.nextEligibleDate
                         ).toLocaleDateString()}`
-                      : " - Complete 5 days of activity to earn MNT tokens!"}
+                      : " - Complete 5 days of activity to earn TLOS tokens!"}
                   </p>
                   {claimError && (
                     <p className="text-sm text-red-500 mt-2">{claimError}</p>

@@ -3,16 +3,16 @@ import { ethers } from "ethers";
 
 const WalletContext = createContext();
 
-const MANTLE_NETWORK = {
-  chainId: "0x138b",
-  chainName: "Mantle-Sepolia",
+const TELOS_NETWORK = {
+  chainId: "0x29",
+  chainName: "Telos EVM Testnet",
   nativeCurrency: {
-    name: "Mantle Sepolia",
-    symbol: "MNT",
+    name: "TLOS",
+    symbol: "TLOS",
     decimals: 18,
   },
-  rpcUrls: ["https://rpc.sepolia.mantle.xyz"],
-  blockExplorerUrls: ["https://sepolia.mantlescan.xyz"],
+  rpcUrls: ["https://rpc.testnet.telos.net"],
+  blockExplorerUrls: ["https://testnet.teloscan.io"],
 };
 
 export const WalletProvider = ({ children }) => {
@@ -36,10 +36,10 @@ export const WalletProvider = ({ children }) => {
     try {
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       console.log("Current Chain ID:", chainId);
-      console.log("Expected Chain ID:", MANTLE_NETWORK.chainId);
+      console.log("Expected Chain ID:", TELOS_NETWORK.chainId);
 
       const isCorrect =
-        chainId.toLowerCase() === MANTLE_NETWORK.chainId.toLowerCase();
+        chainId.toLowerCase() === TELOS_NETWORK.chainId.toLowerCase();
       setIsCorrectNetwork(isCorrect);
       return isCorrect;
     } catch (error) {
@@ -54,7 +54,7 @@ export const WalletProvider = ({ children }) => {
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: MANTLE_NETWORK.chainId }],
+        params: [{ chainId: TELOS_NETWORK.chainId }],
       });
 
       await checkNetwork();
@@ -63,7 +63,7 @@ export const WalletProvider = ({ children }) => {
         try {
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
-            params: [MANTLE_NETWORK],
+            params: [TELOS_NETWORK],
           });
 
           // Check network after adding
@@ -126,7 +126,7 @@ export const WalletProvider = ({ children }) => {
 
   const handleChainChange = async (chainId) => {
     const isCorrect =
-      chainId.toLowerCase() === MANTLE_NETWORK.chainId.toLowerCase();
+      chainId.toLowerCase() === TELOS_NETWORK.chainId.toLowerCase();
     setIsCorrectNetwork(isCorrect);
     if (!isCorrect) {
       await switchNetwork();
