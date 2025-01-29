@@ -48,8 +48,8 @@ const UserRegistration = ({ walletAddress, onRegistrationComplete }) => {
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
-      <CardHeader>
+    <Card className="max-w-md mx-auto mt-[10rem]">
+      <CardHeader className="text-center">
         <CardTitle>Complete Registration</CardTitle>
       </CardHeader>
       <CardContent>
@@ -66,7 +66,11 @@ const UserRegistration = ({ walletAddress, onRegistrationComplete }) => {
             />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full px-4 py-2 font-medium shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+          >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
